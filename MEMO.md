@@ -142,3 +142,42 @@ curl localhost:2980?param1=foo
 2023-05-03T02:22:57Z ERROR 400 Bad Request, /, param1=foo
 2023-05-03T02:22:57Z DEBUG HTTP/1.1 400 Bad Request
 ```
+
+## 例 Kubernetes
+
+Pod の情報を取得する API サーバをデプロイしてみる。
+
+
+ターミナル 1
+
+```bash
+bash ./examples/k8s.sh
+```
+
+ターミナル 2
+
+```bash
+kubectl get pod -o wide
+# NAME           READY   STATUS    RESTARTS   AGE   IP             NODE           NOMINATED NODE   READINESS GATES
+# get-pod-info   1/1     Running   0          44s   10.244.3.54    test-worker3   <none>           <none>
+# target-pod     1/1     Running   0          44s   10.244.2.171   test-worker    <none>           <none>
+
+curl localhost:2980/ip?name=target-pod
+# 10.244.2.171
+
+curl localhost:2980/log
+# 2023-05-03T06:42:59Z INFO  Listening on port 2980
+# 2023-05-03T06:43:29Z DEBUG REQ_METHOD=GET
+# 2023-05-03T06:43:29Z DEBUG URL_PATH=/ip?name=target-pod
+# 2023-05-03T06:43:29Z DEBUG HTTP_VER=HTTP/1.1
+# 2023-05-03T06:43:29Z DEBUG URL_PATHNAME=/ip
+# 2023-05-03T06:43:29Z DEBUG URL_SEARCH=name=target-pod
+# 2023-05-03T06:43:29Z DEBUG Exec: /etc/serversh/src/main.sh
+# 2023-05-03T06:43:29Z DEBUG HTTP/1.1 200 OK
+# 2023-05-03T06:43:52Z DEBUG REQ_METHOD=GET
+# 2023-05-03T06:43:52Z DEBUG URL_PATH=/log
+# 2023-05-03T06:43:52Z DEBUG HTTP_VER=HTTP/1.1
+# 2023-05-03T06:43:52Z DEBUG URL_PATHNAME=/log
+# 2023-05-03T06:43:52Z DEBUG URL_SEARCH=
+# 2023-05-03T06:43:52Z DEBUG Exec: /etc/serversh/src/main.sh
+```

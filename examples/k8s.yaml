@@ -1,0 +1,133 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: get-pod-info
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: get-pod-info
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: get-pod-info
+    namespace: default
+roleRef:
+  kind: Role
+  name: get-pod-info
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: get-pod-info
+  namespace: default
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: get-pod-info
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: get-pod-info
+  ports:
+    - port: 80
+      targetPort: 2980
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: get-pod-info
+  namespace: default
+  labels:
+    app: get-pod-info
+spec:
+  serviceAccountName: get-pod-info
+  containers:
+    - name: server
+      image: ghcr.io/tai-kun/http1-server-sh:latest
+      env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: SERVERSH_LOG_LEVEL
+          value: debug
+      ports:
+        - containerPort: 2980
+      volumeMounts:
+        - name: src
+          mountPath: /etc/serversh/src
+  volumes:
+    - name: src
+      configMap:
+        name: get-pod-info
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: target-pod
+  namespace: default
+spec:
+  containers:
+    - name: alpine
+      image: alpine:3.17.3
+      command:
+        - sleep
+        - infinity
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: get-pod-info
+  namespace: default
+data:
+  main.sh: |
+    #!/bin/bash -e
+
+    source /etc/serversh/bin/utils.sh
+
+    ROUTE="$1"
+    SEARCH="$2"
+    K8S_API_V1="https://kubernetes.default.svc.cluster.local:443/api/v1"
+    K8S_API_TOKEN="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+
+    function param() {
+      get_query_value_from_search "$SEARCH" "$1"
+    }
+
+    case "$ROUTE" in
+      /ip)
+        POD_NAME="$(param 'name')"
+
+        [[ "$POD_NAME" != '' ]] || resp_400 'name is required'
+
+        POD_IP="$(
+          curl -k -H "Authorization: Bearer $K8S_API_TOKEN" \
+            "$K8S_API_V1/namespaces/$POD_NAMESPACE/pods/$POD_NAME" \
+          | jq -r '.status.podIP'
+        )"
+
+        resp_200 "$POD_IP"
+      ;;
+
+      /log)
+        resp_200 "$(cat "$SERVERSH_LOG_FILE")"
+      ;;
+    esac
+
+    resp_404
