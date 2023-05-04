@@ -40,5 +40,14 @@ log debug "URL_PATHNAME=$URL_PATHNAME"
 log debug "URL_SEARCH=$URL_SEARCH"
 log debug "Exec: $SERVERSH_MAIN_SCRIPT"
 
-env _RESP_HTTP_VER="$_RESP_HTTP_VER" \
-/bin/bash "$SERVERSH_MAIN_SCRIPT" "$URL_PATHNAME" "$URL_SEARCH" || resp_500
+RESP="$(
+    env _RESP_HTTP_VER="$_RESP_HTTP_VER" \
+    /bin/bash "$SERVERSH_MAIN_SCRIPT" "$URL_PATHNAME" "$URL_SEARCH"
+)" || {
+    log error "Exit code: $?"
+    [[ -n "$RESP" ]] && echo "$RESP" >> "$SERVERSH_LOG_FILE"
+
+    resp_500
+}
+
+echo -n "$RESP"

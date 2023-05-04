@@ -8,6 +8,11 @@ source /etc/serversh/bin/utils.sh
 ROUTE="$1"
 SEARCH="$2"
 
+[[ "$ROUTE" == '/err' ]] && {
+    echo 'Sample error message'
+    exit 1
+}
+
 function param() {
     get_query_value_from_search "$SEARCH" "$1" "${2:-}"
 }
