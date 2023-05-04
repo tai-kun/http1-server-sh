@@ -152,15 +152,47 @@ Pod の情報を取得する API サーバをデプロイしてみる。
 
 ```bash
 bash ./examples/k8s.sh
+# Creating cluster "example" ...
+#  ✓ Ensuring node image (kindest/node:v1.25.3) 🖼
+#  ✓ Preparing nodes 📦 📦  
+#  ✓ Writing configuration 📜 
+#  ✓ Starting control-plane 🕹️ 
+#  ✓ Installing CNI 🔌 
+#  ✓ Installing StorageClass 💾 
+#  ✓ Joining worker nodes 🚜 
+# Set kubectl context to "kind-example"
+# You can now use your cluster with:
+
+# kubectl cluster-info --context kind-example
+
+# Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+# role.rbac.authorization.k8s.io/get-pod-info created
+# rolebinding.rbac.authorization.k8s.io/get-pod-info created
+# serviceaccount/get-pod-info created
+# service/get-pod-info created
+# pod/get-pod-info created
+# pod/target-pod created
+# configmap/get-pod-info created
+
+# Try:
+#   curl localhost:2980/ip?name=target-pod
+#   curl localhost:2980/log
+
+# Press Ctrl+C to stop
+
+# Forwarding from 127.0.0.1:2980 -> 2980
+# Handling connection for 2980
+# Handling connection for 2980
+# ^C
 ```
 
 ターミナル 2
 
 ```bash
-kubectl get pod -o wide
-# NAME           READY   STATUS    RESTARTS   AGE   IP             NODE           NOMINATED NODE   READINESS GATES
-# get-pod-info   1/1     Running   0          44s   10.244.3.54    test-worker3   <none>           <none>
-# target-pod     1/1     Running   0          44s   10.244.2.171   test-worker    <none>           <none>
+./examples/.cache/kubectl get pod -o wide
+# NAME           READY   STATUS    RESTARTS   AGE   IP           NODE             NOMINATED NODE   READINESS GATES
+# get-pod-info   1/1     Running   0          23s   10.244.1.2   example-worker   <none>           <none>
+# target-pod     1/1     Running   0          23s   10.244.1.3   example-worker   <none>           <none>
 
 curl localhost:2980/ip?name=target-pod
 # 10.244.2.171
