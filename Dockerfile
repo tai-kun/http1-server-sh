@@ -1,10 +1,6 @@
 FROM alpine:3.17.3
 
-RUN apk add --no-cache \
-    # Core
-    bash socat \
-    # Utils
-    curl jq
+RUN apk add --no-cache bash socat
 
 COPY ./bin/ /etc/serversh/bin/
 
