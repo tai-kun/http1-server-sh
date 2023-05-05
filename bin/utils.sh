@@ -21,6 +21,12 @@ function log() {
     local TIMESTAMP
     local RAW_LABEL
 
+    if [[ "$#" -lt 2 ]]; then
+        echo "$1" >> "$SERVERSH_LOG_FILE" || true
+
+        return 0
+    fi
+
     if [[ $(_to_log_level_num "${1,,}") -lt "$LOG_LEVEL_NUM" ]]; then
         return 0
     fi
@@ -30,7 +36,7 @@ function log() {
 
     shift
 
-    echo "$RAW_LABEL $*" >> "$SERVERSH_LOG_FILE"
+    echo "$RAW_LABEL $*" >> "$SERVERSH_LOG_FILE" || true
 }
 
 function get_query_value_from_search() {

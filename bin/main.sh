@@ -45,7 +45,10 @@ RESP="$(
     /bin/bash "$SERVERSH_MAIN_SCRIPT" "$URL_PATHNAME" "$URL_SEARCH"
 )" || {
     log error "Exit code: $?"
-    [[ -n "$RESP" ]] && echo "$RESP" >> "$SERVERSH_LOG_FILE"
+
+    if [[ -n "$RESP" ]]; then
+        log "$RESP"
+    fi
 
     resp_500
 }

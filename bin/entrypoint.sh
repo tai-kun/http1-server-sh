@@ -6,9 +6,19 @@ set -e
 source /etc/serversh/bin/utils.sh
 
 if [[ -f "$SERVERSH_INIT_SCRIPT" ]]; then
-    log debug "Exec: $SERVERSH_INIT_SCRIPT"
+    log info "Exec: $SERVERSH_INIT_SCRIPT"
 
-    /bin/bash "$SERVERSH_INIT_SCRIPT"
+    OUT="$(/bin/bash "$SERVERSH_INIT_SCRIPT")" || {
+        EXIT_CODE="$?"
+
+        log error "Exit code: $EXIT_CODE"
+
+        if [[ -n "$OUT" ]]; then
+            log "$OUT"
+        fi
+
+        exit $EXIT_CODE
+    }
 fi
 
 log info "Listening on port $SERVERSH_PORT_NUMBER"
